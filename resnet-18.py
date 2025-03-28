@@ -10,7 +10,7 @@ class ResNet18:
 
 
     def Conv(self,x,weight,bias):
-        a = x*weight+bias
+        a = np.dot(x, weight)+bias
         return a
     
     def Conv2_x(self,x,weight,bias):

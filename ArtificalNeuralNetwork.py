@@ -10,7 +10,7 @@ class ANN:
         return np.maximum(0, a)
    
     def summation(self):
-        a = np.sum(self.w*self.x)+self.bias
+        a = np.dot(self.x, self.w)+self.bias
         return a
     def output(self):
         a = self.summation()
