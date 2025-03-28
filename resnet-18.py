@@ -7,33 +7,83 @@ class ResNet18:
 
     def gap(self,x):
         return np.mean(x)
+    
+    def backprop_conv(self, x, weight, bias, y_true, lr = 0.01):
+        # Forward
+        z = np.dot(x, weight) + bias
+        y_pred = np.maximum(0, z)  # ReLU
 
-    def fit(self,x,y,b_fc,w_fc,learningRate = 0.01 ,epochs = 50):
+        # Loss
+        loss = (y_pred - y_true) ** 2
+
+        # Backward
+        dL_dy = 2 * (y_pred - y_true)
+        dy_dz = (z > 0).astype(float)  # ReLU türevi
+        dL_dz = dL_dy * dy_dz
+
+        # Gradients
+        dL_dw = dL_dz * x
+        dL_db = dL_dz
+
+        # Update
+        weight -= lr * dL_dw
+        bias -= lr * dL_db
+
+        return weight, bias, loss
+
+
+    def fit(self, x, y, b_fc, w_fc, weights, biases, learningRate=0.01, epochs=50, loss_list=None):
+        if loss_list is None:
+            loss_list = []
         for epoch in range(epochs):
             total_loss = 0
-            for i in range(len(x)):
-                x_i = x[i]
-                y_true = y[i]
+            for i in range(len(weights)):
+                for j in range(len(weights[i])):
+                    x_i = x[i]
+                    y_true = y[i]
 
-                # forward
-                out = self.predict(x_i,weights,biases)
-                pooled = self.gap(out)
-                y_pred = pooled * w_fc + b_fc
+                    # forward
+                    out = self.predict(x_i,weights,biases)
+                    pooled = self.gap(out)
+                    y_pred = pooled * w_fc + b_fc
 
-                # loss (MSE)
-                loss = (y_pred - y_true) ** 2
-                total_loss +=loss
+                    # loss (MSE)
+                    loss = (y_pred - y_true) ** 2
+                    total_loss +=loss
 
-                # gradients (MSE derivate)
-                dW = 2* (y_pred - y_true) * pooled
-                db = 2* (y_pred - y_true)
+                    # gradients (MSE derivate)
+                    dW = 2* (y_pred - y_true) * pooled
+                    db = 2* (y_pred - y_true)
 
-                w_fc -= learningRate * dW
-                b_fc -= learningRate * db
-
-            avg_loss = total_loss / len(x)            
+                    w_fc -= learningRate * dW
+                    b_fc -= learningRate * db
+                    weights[i][j], biases[i][j], loss = self.backprop_conv(x_i, weights[i][j], biases[i][j], y_true, learningRate)
+            avg_loss = total_loss / len(x) 
+            loss_list.append(avg_loss)
             print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
-        return w_fc,b_fc
+        return w_fc,b_fc,weights,biases,loss_list
+    
+    def evaluate_accuracy(self, X, y, w_fc, b_fc, weights, biases):
+        correct = 0
+        for i in range(len(X)):
+            x_i = X[i]
+            y_true = y[i]
+
+            out = self.predict(x_i, weights, biases)
+            pooled = self.gap(out)
+            y_pred = pooled * w_fc + b_fc
+
+            # Softmax gibi threshold
+            prediction = 1 if y_pred >= 0.5 else 0
+
+            if prediction == y_true:
+                correct += 1
+
+        accuracy = correct / len(X)
+        print(f"Accuracy: {accuracy:.2%}")
+        return accuracy
+
+
 
     def Conv(self,x,weight,bias):
         a = np.dot(x, weight)+bias
@@ -110,8 +160,8 @@ class ResNet18:
 model = ResNet18()
 
 x = np.array([1.0, -0.5, 2.0])
-weights = [[np.random.randn(3) for _ in range(5)] for _ in range(4)]
-biases = [[np.random.randn() for _ in range(5)] for _ in range(4)]
+weights = [[np.random.randn(3,3) for _ in range(5)] for _ in range(4)]
+biases = [[np.random.randn(3) for _ in range(5)] for _ in range(4)]
 
 output = model.predict(x, weights, biases)
 gap_output = model.gap(output)
@@ -138,7 +188,20 @@ print("Softmax:", softmax_output)
 X = [np.random.rand(3) for _ in range(5)]  # 5 örnek
 y = [1, 0, 1, 0, 1]  # hedefler (binary sınıflar)
 
-weights = [[np.random.randn(3) for _ in range(5)] for _ in range(4)]
-biases = [[np.random.randn() for _ in range(5)] for _ in range(4)]
+w_fc,b_fc,weights,biases,loss_list = model.fit(X, y,b_fc,w_fc,weights,biases,learningRate=0.1, epochs=50)
 
-w_fc,b_fc = model.fit(X, y,b_fc,w_fc,learningRate=0.1, epochs=50 )
+acc = model.evaluate_accuracy(X, y, w_fc, b_fc, weights, biases)
+
+print(f"Accuracy: {acc:.4f}")
+
+
+import matplotlib.pyplot as plt
+
+
+# Eğitim bitince:
+plt.plot(loss_list)
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training Loss")
+plt.grid(True)
+plt.show()
