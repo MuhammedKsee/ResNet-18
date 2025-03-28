@@ -8,6 +8,32 @@ class ResNet18:
     def gap(self,x):
         return np.mean(x)
 
+    def fit(self,x,y,b_fc,w_fc,learningRate = 0.01 ,epochs = 50):
+        for epoch in range(epochs):
+            total_loss = 0
+            for i in range(len(x)):
+                x_i = x[i]
+                y_true = y[i]
+
+                # forward
+                out = self.predict(x_i,weights,biases)
+                pooled = self.gap(out)
+                y_pred = pooled * w_fc + b_fc
+
+                # loss (MSE)
+                loss = (y_pred - y_true) ** 2
+                total_loss +=loss
+
+                # gradients (MSE derivate)
+                dW = 2* (y_pred - y_true) * pooled
+                db = 2* (y_pred - y_true)
+
+                w_fc -= learningRate * dW
+                b_fc -= learningRate * db
+
+            avg_loss = total_loss / len(x)            
+            print(f"Epoch {epoch+1}/{epochs}, Loss: {avg_loss:.4f}")
+        return w_fc,b_fc
 
     def Conv(self,x,weight,bias):
         a = np.dot(x, weight)+bias
@@ -97,9 +123,9 @@ print("GAP Çıktısı:", gap_output)
 pooled = np.mean(output)
 
 # FC layer simülasyonu
-W_fc = np.random.randn()
+w_fc = np.random.randn()
 b_fc = np.random.randn()
-fc_output = W_fc * pooled + b_fc
+fc_output = w_fc * pooled + b_fc
 
 # Softmax simülasyonu (tek sınıf olsa da gösterim)
 softmax_output = 1 / (1 + np.exp(-fc_output))
@@ -107,3 +133,12 @@ softmax_output = 1 / (1 + np.exp(-fc_output))
 print("Pooled:", pooled)
 print("FC Output:", fc_output)
 print("Softmax:", softmax_output)
+
+
+X = [np.random.rand(3) for _ in range(5)]  # 5 örnek
+y = [1, 0, 1, 0, 1]  # hedefler (binary sınıflar)
+
+weights = [[np.random.randn(3) for _ in range(5)] for _ in range(4)]
+biases = [[np.random.randn() for _ in range(5)] for _ in range(4)]
+
+w_fc,b_fc = model.fit(X, y,b_fc,w_fc,learningRate=0.1, epochs=50 )
