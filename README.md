@@ -1,56 +1,107 @@
-# ResNet-18 Basitleştirilmiş Implementasyonu
+# 🔎 ResNet18 from Scratch (NumPy Only)
 
-Bu proje, ResNet-18 mimarisinin basitleştirilmiş bir implementasyonunu içermektedir. Proje, yapay sinir ağları ve konvolüsyonel katmanların temel prensiplerini göstermektedir.
+Bu proje, derin öğrenme dünyasının temel taşlarından biri olan **ResNet-18 mimarisinin** sıfırdan, yalnızca NumPy kullanılarak inşa edildiği bir Python uygulamasıdır. Hiçbir derin öğrenme framework'ü (PyTorch, TensorFlow) kullanılmamıştır.
 
-## Proje Yapısı
+---
 
-Proje iki ana Python dosyasından oluşmaktadır:
+## 📚 İçerik
 
-- `ArtificalNeuralNetwork.py`: Temel yapay sinir ağı bileşenlerini içerir
-- `resnet-18.py`: ResNet-18 mimarisinin basitleştirilmiş implementasyonunu içerir
+Bu projede aşağıdaki yapılar sıfırdan yazılmıştır:
 
-## Gereksinimler
+- ✅ Residual bloklar (`Conv2_x`, `Conv3_x`, `Conv4_x`, `Conv5_x`)
+- ✅ ReLU aktivasyon fonksiyonu
+- ✅ Residual (shortcut) bağlantılar
+- ✅ Global Average Pooling
+- ✅ Fully Connected (FC) katman
+- ✅ Softmax fonksiyonu (binary sınıflandırma için)
+- ✅ `predict()` fonksiyonu ile tam akış
 
-- Python 3.x
-- NumPy
+---
 
-## Kurulum
+## 🚀 Nasıl Çalışır?
 
-1. Projeyi klonlayın
-2. Gerekli kütüphaneleri yükleyin:
-```bash
-pip install numpy
-```
-
-## Kullanım
-
-Projeyi çalıştırmak için:
+### 1. Giriş
 
 ```python
-from resnet-18 import ResNet18
-
-# Model oluşturma
-model = ResNet18()
-
-# Örnek girdi ve ağırlıklar
 x = np.array([1.0, -0.5, 2.0])
-w1 = np.random.randn(3)
-b1 = np.random.randn()
-w2 = np.random.randn(3)
-b2 = np.random.randn()
-
-# Tahmin
-output = model.predict(x, w1, b1, w2, b2)
-print("Sonuç:", output)
 ```
 
-## Özellikler
+### 2. Ağırlıklar ve Biaslar
 
-- ReLU aktivasyon fonksiyonu
-- Konvolüsyonel katmanlar
-- Skip connection (atlama bağlantısı) implementasyonu
-- Basitleştirilmiş ResNet-18 mimarisi
+Rastgele 4 blok için, her biri 5 Conv katmanı olacak şekilde ağırlıklar ve biaslar üretilir:
 
-## Not
+```python
+weights = [[np.random.randn(3) for _ in range(5)] for _ in range(4)]
+biases  = [[np.random.randn() for _ in range(5)] for _ in range(4)]
+```
 
-Bu implementasyon, orijinal ResNet-18 mimarisinin basitleştirilmiş bir versiyonudur ve eğitim amaçlıdır. Gerçek uygulamalar için PyTorch veya TensorFlow gibi derin öğrenme framework'lerinin kullanılması önerilir. 
+### 3. Model Çalıştırma
+
+```python
+model = ResNet18()
+output = model.predict(x, weights, biases)
+```
+
+### 4. Global Average Pooling
+
+```python
+gap_output = model.gap(output)
+```
+
+### 5. FC + Softmax
+
+```python
+W_fc = np.random.randn()
+b_fc = np.random.randn()
+fc_output = W_fc * gap_output + b_fc
+softmax_output = 1 / (1 + np.exp(-fc_output))
+```
+
+---
+
+## 📈 Örnek Çıktı
+
+```
+Sonuc: [1.74, 1.92, 2.49]
+GAP Çıktısı: 2.05
+FC Output: 0.95
+Softmax: 0.72
+```
+
+---
+
+## 🎯 Neden Bu Proje?
+
+Bu proje, derin öğrenme mimarilerini:
+
+- Derinlemesine anlamak
+- Katman katman mantığını kavramak
+- Otomatik kütüphaneler olmadan sıfırdan kurmak
+
+için geliştirilmiştir. Eğitim veya ileri düzey optimizasyon şu an dahil değildir, ancak kolayca entegre edilebilir.
+
+---
+
+## ✍️ Geliştiren
+
+📌 [Muhammed KSE](#)  
+💡 "Mimariyi anlamadan model kullanmak, binanın temelini bilmeden kat çıkmaktır."
+
+---
+
+## 📌 Notlar
+
+- NumPy dışındaki hiçbir kütüphane kullanılmamıştır.
+- Tüm işlemler vektör düzeyindedir (Conv katmanlar basitleştirilmiştir).
+- Dilersen `Global Average Pooling`, `Softmax`, `Cross Entropy Loss`, `Backpropagation` gibi eklentilerle geliştirmeye açıktır.
+
+---
+
+## 🧠 Katkı ve Devam
+
+Eğer bu projeyi beğendiysen:
+
+- ⭐ Star ver
+- 🍴 Forkla
+- 🤝 Pull Request gönder
+```
