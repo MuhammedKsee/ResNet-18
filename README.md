@@ -93,7 +93,7 @@ için geliştirilmiştir. Eğitim veya ileri düzey optimizasyon şu an dahil de
 
 - NumPy dışındaki hiçbir kütüphane kullanılmamıştır.
 - Tüm işlemler vektör düzeyindedir (Conv katmanlar basitleştirilmiştir).
-- Dilersen `Global Average Pooling`, `Softmax`, `Cross Entropy Loss`, `Backpropagation` gibi eklentilerle geliştirmeye açıktır.
+- Farklı eklentilerle geliştirmeye açıktır.
 
 ---
 
@@ -104,4 +104,3 @@ Eğer bu projeyi beğendiysen:
 - ⭐ Star ver
 - 🍴 Forkla
 - 🤝 Pull Request gönder
-```
